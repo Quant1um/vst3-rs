@@ -296,4 +296,26 @@ impl<C: Class> ComWrapper<C> {
             None
         }
     }
+
+    /// Returns a [`ComWrapper`] owning the COM object pointed to by `ptr`.
+    ///
+    /// Increments the reference count of the object.
+    ///
+    /// # Safety
+    ///
+    /// `ptr` must point to a valid COM object of type `C`, and the COM object must have been allocated using [`ComWrapper<C>`].
+    pub unsafe fn from_ptr(ptr: *const C) -> ComWrapper<C>
+    where
+        C: 'static,
+        C::Interfaces: MakeHeader<C, Self>,
+    {
+        let wrapper_ptr = (ptr as *const u8).offset(-offset_of!(ComWrapperInner<C>, data))
+            as *const ComWrapperInner<C>;
+
+        Arc::increment_strong_count(wrapper_ptr);
+
+        ComWrapper {
+            inner: Arc::from_raw(wrapper_ptr),
+        }
+    }
 }
