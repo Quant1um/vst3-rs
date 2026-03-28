@@ -561,13 +561,13 @@ extern "system" fn ExitDll() -> bool {
 
 #[cfg(target_os = "macos")]
 #[no_mangle]
-extern "system" fn BundleEntry(_bundle_ref: *mut c_void) -> bool {
+extern "system" fn bundleEntry(_bundle_ref: *mut c_void) -> bool {
     true
 }
 
 #[cfg(target_os = "macos")]
 #[no_mangle]
-extern "system" fn BundleExit() -> bool {
+extern "system" fn bundleExit() -> bool {
     true
 }
 
