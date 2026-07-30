@@ -1,6 +1,6 @@
 use std::ops::Deref;
 use std::ptr::addr_of;
-use std::sync::Arc;
+use std::sync::{Arc, Weak};
 
 use super::{ComPtr, ComRef, Guid, Interface};
 
@@ -295,5 +295,54 @@ impl<C: Class> ComWrapper<C> {
         } else {
             None
         }
+    }
+
+    /// Creates a [`ComWrapperWeak`] to this object.
+    #[inline]
+    pub fn downgrade(&self) -> ComWrapperWeak<C> {
+        ComWrapperWeak {
+            inner: Arc::downgrade(&self.inner),
+        }
+    }
+}
+
+/// Weak version of [`ComWrapper`], which holds a non-owning reference to the COM object.
+///
+/// The underlying object can be accessed by calling [`ComWrapperWeak::upgrade`], which will return `None` if the object has already been dropped.
+///
+/// See [`Weak`] for more information on weak references.
+pub struct ComWrapperWeak<C: Class> {
+    inner: Weak<ComWrapperInner<C>>,
+}
+
+impl<C: Class> Clone for ComWrapperWeak<C> {
+    fn clone(&self) -> ComWrapperWeak<C> {
+        ComWrapperWeak {
+            inner: self.inner.clone(),
+        }
+    }
+}
+
+impl<C: Class> Default for ComWrapperWeak<C> {
+    fn default() -> ComWrapperWeak<C> {
+        ComWrapperWeak::new()
+    }
+}
+
+impl<C: Class> ComWrapperWeak<C> {
+    /// Construct a new [`ComWrapperWeak`] without allocating any memory.
+    ///
+    /// Calling [`ComWrapperWeak::upgrade`] on the returned value will always return `None`.
+    #[inline]
+    pub fn new() -> ComWrapperWeak<C> {
+        ComWrapperWeak { inner: Weak::new() }
+    }
+
+    /// Attempts to upgrade the weak reference to a strong reference, delaying dropping of the inner value if successful.
+    ///
+    /// Returns `None` if the inner value has already been dropped.
+    #[inline]
+    pub fn upgrade(&self) -> Option<ComWrapper<C>> {
+        self.inner.upgrade().map(|inner| ComWrapper { inner })
     }
 }
