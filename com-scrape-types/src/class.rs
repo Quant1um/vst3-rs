@@ -261,6 +261,25 @@ impl<C: Class> ComWrapper<C> {
         }
     }
 
+    /// Constructs a new [`ComWrapper`] with a cyclic reference to itself.
+    ///
+    /// See [`Arc::new_cyclic`] for more information.
+    #[inline]
+    pub fn new_cyclic(data: impl FnOnce(ComWrapperWeak<C>) -> C) -> ComWrapper<C>
+    where
+        C: 'static,
+        C::Interfaces: MakeHeader<C, Self>,
+    {
+        ComWrapper {
+            inner: Arc::new_cyclic(|weak| ComWrapperInner {
+                header: C::Interfaces::HEADER,
+                data: data(ComWrapperWeak {
+                    inner: weak.clone(),
+                }),
+            }),
+        }
+    }
+
     /// If `I` is in `C`'s interface list, returns a [`ComRef<I>`] pointing to the object.
     ///
     /// Does not perform any reference counting operations.
