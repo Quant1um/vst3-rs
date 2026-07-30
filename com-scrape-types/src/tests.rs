@@ -3,6 +3,7 @@ use std::ffi::{c_long, c_ulong, c_void};
 use std::ptr;
 use std::rc::Rc;
 
+use crate::class::ComWrapperWeak;
 use crate::*;
 
 #[repr(C)]
@@ -488,4 +489,43 @@ fn com_wrapper() {
 
     drop(com_ptr_4);
     assert_eq!(dropped.get(), true);
+}
+
+#[test]
+fn com_wrapper_weak() {
+    let dropped = Rc::new(Cell::new(false));
+    let obj = ComWrapper::new(MyClass2 {
+        x: 1,
+        y: 2,
+        dropped: dropped.clone(),
+    });
+
+    let weak = obj.downgrade();
+    assert!(!dropped.get());
+
+    let upgraded = weak.upgrade().unwrap();
+    assert_eq!(
+        upgraded.as_com_ref::<IMyInterface>().unwrap().my_method(),
+        1
+    );
+    assert_eq!(
+        upgraded
+            .as_com_ref::<IOtherInterface>()
+            .unwrap()
+            .other_method(),
+        2
+    );
+
+    drop(obj);
+    assert!(!dropped.get());
+
+    drop(upgraded);
+    assert!(dropped.get());
+
+    let after_drop = weak.upgrade();
+    assert!(after_drop.is_none());
+
+    let dangling = ComWrapperWeak::<MyClass2>::new();
+    let dangling = dangling.upgrade();
+    assert!(dangling.is_none());
 }
