@@ -3,7 +3,6 @@ use std::ffi::{c_long, c_ulong, c_void};
 use std::ptr;
 use std::rc::Rc;
 
-use crate::class::ComWrapperWeak;
 use crate::*;
 
 #[repr(C)]
