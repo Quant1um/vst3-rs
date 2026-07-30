@@ -315,6 +315,9 @@ pub struct ComWrapperWeak<C: Class> {
     inner: Weak<ComWrapperInner<C>>,
 }
 
+unsafe impl<C: Class> Send for ComWrapperWeak<C> where C: Send + Sync {}
+unsafe impl<C: Class> Sync for ComWrapperWeak<C> where C: Send + Sync {}
+
 impl<C: Class> Clone for ComWrapperWeak<C> {
     fn clone(&self) -> ComWrapperWeak<C> {
         ComWrapperWeak {
