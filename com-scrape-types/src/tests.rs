@@ -499,7 +499,7 @@ fn com_wrapper_weak() {
         dropped: dropped.clone(),
     });
 
-    let weak = obj.downgrade();
+    let weak = ComWrapper::downgrade(&obj);
     assert!(!dropped.get());
 
     let upgraded = weak.upgrade().unwrap();

@@ -318,9 +318,9 @@ impl<C: Class> ComWrapper<C> {
 
     /// Creates a [`ComWrapperWeak`] to this object.
     #[inline]
-    pub fn downgrade(&self) -> ComWrapperWeak<C> {
+    pub fn downgrade(this: &Self) -> ComWrapperWeak<C> {
         ComWrapperWeak {
-            inner: Arc::downgrade(&self.inner),
+            inner: Arc::downgrade(&this.inner),
         }
     }
 }
